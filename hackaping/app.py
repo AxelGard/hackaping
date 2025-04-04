@@ -63,9 +63,7 @@ def run_sim():
             min_cost = total_cost
             min_batch = b
             min_time = total_time
-
-    time =  simulation_machines(body["process_time"], body["demands"], 20.0, body["n_machines"]) 
-    
+ 
     return jsonify({
         'statusCode': 200,
         'body': json.dumps({
