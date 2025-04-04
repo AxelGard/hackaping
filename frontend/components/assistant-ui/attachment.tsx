@@ -1,6 +1,5 @@
 "use client";
 
-import { PropsWithChildren, useEffect, useState, type FC } from "react";
 import { CircleXIcon, FileIcon, PaperclipIcon } from "lucide-react";
 import {
   AttachmentPrimitive,
@@ -25,6 +24,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { DialogContent as DialogPrimitiveContent } from "@radix-ui/react-dialog";
+import { useFileUploadStore } from "@/services/file-upload";
+import React, { PropsWithChildren, useEffect, useState, type FC } from "react";
 
 const useFileSrc = (file: File | undefined) => {
   const [src, setSrc] = useState<string | undefined>(undefined);
@@ -92,7 +93,10 @@ const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <Dialog>
-      <DialogTrigger className="hover:bg-accent/50 cursor-pointer transition-colors" asChild>
+      <DialogTrigger
+        className="hover:bg-accent/50 cursor-pointer transition-colors"
+        asChild
+      >
         {children}
       </DialogTrigger>
       <AttachmentDialogContent>
@@ -194,16 +198,46 @@ export const ComposerAttachments: FC = () => {
 };
 
 export const ComposerAddAttachment: FC = () => {
+  const addFile = useFileUploadStore((state) => state.addFile);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      addFile(file);
+      console.log("File added for processing:", file.name);
+    }
+
+    // Reset the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
-    <ComposerPrimitive.AddAttachment asChild>
-      <TooltipIconButton
-        className="my-2.5 size-8 p-2 transition-opacity ease-in"
-        tooltip="Add Attachment"
-        variant="ghost"
+    <div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        id="file-upload"
+        style={{ display: "none" }}
+        onChange={handleFileSelect}
+        accept="image/*,application/pdf,.csv,.xlsx,.xls,.docx,.doc,.txt"
+      />
+      <div
+        onClick={() => fileInputRef.current?.click()}
+        className="cursor-pointer"
       >
-        <PaperclipIcon />
-      </TooltipIconButton>
-    </ComposerPrimitive.AddAttachment>
+        <TooltipIconButton
+          className="my-2.5 size-8 p-2 transition-opacity ease-in"
+          tooltip="Add Attachment"
+          variant="ghost"
+          type="button"
+        >
+          <PaperclipIcon />
+        </TooltipIconButton>
+      </div>
+    </div>
   );
 };
 

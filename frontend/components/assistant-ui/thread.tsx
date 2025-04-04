@@ -22,6 +22,9 @@ import { Button } from "@/components/ui/button";
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { ComposerAddAttachment, ComposerAttachments } from "./attachment";
+import { VisualizationToggle } from "@/components/assistant-ui/visualization-toggle";
+import { useVisualization } from "@/components/contexts/visualization-context";
+import { useForwardingStation } from "@/services/forwarding-station";
 
 export const Thread: FC = () => {
   return (
@@ -109,31 +112,67 @@ const ThreadWelcomeSuggestions: FC = () => {
   );
 };
 
+// Merged Composer component with both visualization toggle and attachments
 const Composer: FC = () => {
+  const { visualizationsEnabled, setVisualizationsEnabled } =
+    useVisualization();
+
+  // Handle the visualization toggle
+  const handleVisualizationToggle = (enabled: boolean) => {
+    setVisualizationsEnabled(enabled);
+  };
+
   return (
-    <ComposerPrimitive.Root className="focus-within:border-ring/20 flex w-full flex-wrap items-end rounded-lg border bg-inherit px-2.5 shadow-sm transition-colors ease-in">
-      <ComposerAttachments />
-      <ComposerAddAttachment />
-      <ComposerPrimitive.Input
-        rows={1}
-        autoFocus
-        placeholder="Write a message..."
-        className="placeholder:text-muted-foreground max-h-40 flex-grow resize-none border-none bg-transparent px-2 py-4 text-sm outline-none focus:ring-0 disabled:cursor-not-allowed"
-      />
-      <ComposerAction />
-    </ComposerPrimitive.Root>
+    <div className="w-full max-w-[var(--thread-max-width)]">
+      <div className="mb-2 flex justify-end">
+        <VisualizationToggle onToggle={handleVisualizationToggle} />
+      </div>
+      <ComposerPrimitive.Root className="focus-within:border-ring/20 flex w-full flex-wrap items-end rounded-lg border bg-inherit px-2.5 shadow-sm transition-colors ease-in">
+        <ComposerAttachments />
+        <ComposerAddAttachment />
+        <ComposerPrimitive.Input
+          rows={1}
+          autoFocus
+          placeholder="Write a message..."
+          className="placeholder:text-muted-foreground max-h-40 flex-grow resize-none border-none bg-transparent px-2 py-4 text-sm outline-none focus:ring-0 disabled:cursor-not-allowed"
+        />
+        <ComposerAction />
+      </ComposerPrimitive.Root>
+    </div>
   );
 };
 
 const ComposerAction: FC = () => {
+  const { visualizationsEnabled } = useVisualization();
+  const { getProcessedDataForChat, clearProcessedFiles } =
+    useForwardingStation();
+
+  const handleSend = () => {
+    const fileData = getProcessedDataForChat();
+
+    // Log if file data is available
+    if (fileData) {
+      console.log("Sending file data with message:", fileData);
+      // Clear after sending
+      clearProcessedFiles();
+    }
+  };
+
   return (
     <>
       <ThreadPrimitive.If running={false}>
-        <ComposerPrimitive.Send asChild>
+        <ComposerPrimitive.Send
+          asChild
+          options={{
+            visualizationsEnabled,
+            fileData: getProcessedDataForChat(),
+          }}
+        >
           <TooltipIconButton
             tooltip="Send"
             variant="default"
             className="my-2.5 size-8 p-2 transition-opacity ease-in"
+            onClick={handleSend}
           >
             <SendHorizontalIcon />
           </TooltipIconButton>
@@ -202,10 +241,24 @@ const EditComposer: FC = () => {
 };
 
 const AssistantMessage: FC = () => {
+  const { visualizationsEnabled } = useVisualization();
+
   return (
     <MessagePrimitive.Root className="grid grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] relative w-full max-w-[var(--thread-max-width)] py-4">
       <div className="text-foreground max-w-[calc(var(--thread-max-width)*0.8)] break-words leading-7 col-span-2 col-start-2 row-start-1 my-1.5">
         <MessagePrimitive.Content components={{ Text: MarkdownText }} />
+
+        {/* Simple placeholder for visualization that shows when toggle is enabled */}
+        {visualizationsEnabled && (
+          <div className="mt-4 border rounded-lg p-4 bg-background">
+            <div className="text-sm font-medium mb-2">Visualization</div>
+            <div className="h-64 flex items-center justify-center bg-muted rounded">
+              <p className="text-muted-foreground">
+                Visualization will appear here when implemented
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <AssistantActionBar />
@@ -223,20 +276,6 @@ const AssistantActionBar: FC = () => {
       autohideFloat="single-branch"
       className="text-muted-foreground flex gap-1 col-start-3 row-start-2 -ml-1 data-[floating]:bg-background data-[floating]:absolute data-[floating]:rounded-md data-[floating]:border data-[floating]:p-1 data-[floating]:shadow-sm"
     >
-      {/* <MessagePrimitive.If speaking={false}>
-        <ActionBarPrimitive.Speak asChild>
-          <TooltipIconButton tooltip="Read aloud">
-            <AudioLinesIcon />
-          </TooltipIconButton>
-        </ActionBarPrimitive.Speak>
-      </MessagePrimitive.If>
-      <MessagePrimitive.If speaking>
-        <ActionBarPrimitive.StopSpeaking asChild>
-          <TooltipIconButton tooltip="Stop">
-            <StopCircleIcon />
-          </TooltipIconButton>
-        </ActionBarPrimitive.StopSpeaking>
-      </MessagePrimitive.If> */}
       <ActionBarPrimitive.Copy asChild>
         <TooltipIconButton tooltip="Copy">
           <MessagePrimitive.If copied>
