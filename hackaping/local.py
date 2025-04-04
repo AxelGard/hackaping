@@ -37,10 +37,17 @@ def main():
     n_machines = 2
 
     min_batch, max_batch = 10, 1000    
-    for batch_size in range(min_batch, max_batch + 1):
-        batch_sizes = [batch_size] * len(proc_times)
-        total_cost, total_time = simulation_one_month(demands, batch_sizes, proc_times, switching_cost, n_machines, 100.0)
-        print(f"Batch size: {batch_size}, Total cost: {total_cost}, Total time: {total_time}")
+
+    min_cost = math.inf 
+    min_batch = math.inf
+
+    for b in range(min_batch, max_batch + 1):
+        tmp_batches = [batch + b for batch in batch_sizes]
+        total_cost, total_time = simulation_one_month(demands, tmp_batches, proc_times, switching_cost, n_machines, 10.0)
+        if total_cost < min_cost:
+            min_cost = total_cost
+            min_batch = b
+    print(f"Batch size: {b}, Total cost: {total_cost}, Total time: {total_time}")
 
 
 """
