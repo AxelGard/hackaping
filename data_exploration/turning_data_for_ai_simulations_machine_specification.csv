@@ -1,0 +1,5 @@
+Machine Type,Tool Capacity Milling Spindle,Tool Capacity Turret 1,Tool Capacity Turret 2,Cost per minute in SEK,Speed up factor,Total machines available
+Traub TNX,80,10,10,10,1.1,4
+INDEX G220,139,12,12,13,1,2
+,,,,,,
+Machine 55235206 and 55235207 are mapped to Traub TNX and  55235240 and 55235241 to INDEX G220,,,,,,
