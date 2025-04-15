@@ -1,7 +1,9 @@
 import json
 import typing
 import math
-
+import pandas as pd
+import numpy as np
+from scipy.optimize import minimize
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -40,7 +42,7 @@ def simulation_one_month(demands:typing.List[float], batch_size:typing.List[int]
     return total_cost, total_time
 
 @app.route('/cost', methods=['POST'])
-def run_sim():
+def run_sim_cost():
     body = request.json
 
     switching_cost = 20.0
